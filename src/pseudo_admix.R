@@ -5,6 +5,7 @@ library(devtools)
 library(pkgload)
 library(hexbin)
 library(ggpmisc)
+library(latex2exp)
 
 devtools::document('~/diverdt')
 devtools::load_all('~/diverdt')
@@ -42,49 +43,82 @@ plot_wd_stats <-
     ggsave(paste0('../figures/', figname))
   }
 
-pops <- c('YRI', 'CEU', 'ASW')
-l_chr <- 10:16
+serial_fst_plots <-
+  function(data_wd, pop_names){
 
-pop_freqs <- 
-    lapply(
-      pops, 
-      function(pop_name){
-        rbindlist(
-          lapply(l_chr, 
-            function(chr){
-              fname <- paste0('../data/', pop_name, '61/', pop_name, '_chr', chr)
-              freq_data <- load_pvar_afreq(fname, pop_name = pop_name, read_info = FALSE)
-              freq_data[, HTZ := 2 * AF * (1 - AF)]
-              return(freq_data[FILTER == 'PASS'])
-            })
-        )
+    stats <- c('HTZn_', 'S_') 
+    stat_labels <- c('\\pi', 'S')
+    for(i in 1:2){
+      for(j in 1:2){
+        sl <- stat_labels[j]
+        sv <- stats[j]
+        xformula <- 'FST'
+        yformula <- paste0(sv, 'adx / ', sv, 's', i)
+        xlabel <- TeX(paste0("F_{st}(",pop_names[1], ",", pop_names[2], ")"))
+        ylabel <- TeX(paste0("$", sl, "_{", pop_names[3], "}","/", sl, "_{", pop_names[i], "}","$"))
+        fname <- paste0(sv, pop_names[3], '-', pop_names[i], '.png')
+        plot_wd_stats(data_wd = data_wd, 
+                      xformula = xformula,
+                      yformula = yformula,
+                      xlabel = xlabel,
+                      ylabel = ylabel,
+                      figname = fname)
       }
-    )
 
- 
-tg_data <- merge_pop_data(pop_freqs)
+    }
+  }
 
-width = 2e4
-S_wd <- 
-  tg_data[, .(S_adx= length(.I[which(!is.na(AF))]), 
-              S_s1= length(.I[which(!is.na(AF.x))]), 
-              S_s2= length(.I[which(!is.na(AF.y))]), 
-              HTZ_adx = mean(HTZ, na.rm = TRUE), 
-              HTZ_s1 = mean(HTZ.x, na.rm = TRUE), 
-              HTZ_s2 = mean(HTZ.y, na.rm = TRUE), 
-              HTZn_adx = sum(HTZ, na.rm = TRUE) / width, 
-              HTZn_s1 = sum(HTZ.x, na.rm = TRUE) / width, 
-              HTZn_s2 = sum(HTZ.y, na.rm = TRUE) / width, 
-              FST = sum(T1, na.rm = TRUE)/sum(T2, na.rm = TRUE) 
-             )
-          ,by = .(CHROM,floor(POS / width))]
+pipeline <- 
+  function(pops, pop_names, ns, l_chr){
+    pop_freqs <- 
+        lapply(
+          pops, 
+          function(pop_name){
+            rbindlist(
+              lapply(l_chr, 
+                function(chr){
+                  fname <- paste0('../data/', pop_name, ns, '/', pop_name, '_chr', chr)
+                  freq_data <- load_pvar_afreq(fname, pop_name = pop_name, read_info = FALSE)
+                  freq_data[, HTZ := 2 * AF * (1 - AF)]
+                  return(freq_data[FILTER == 'PASS'])
+                })
+            )
+          }
+        )
 
-min_S <- 15
-data_wd <- S_wd[!is.na(FST) & S_adx > min_S & S_s1 > min_S & S_s1 > min_S]
+     
+    fulldata <- merge_pop_data(pop_freqs)
 
-plot_wd_stats(data_wd = data_wd, 
-              xformula = 'FST',
-              yformula = 'HTZn_adx / HTZn_s1',
-              xlabel = expression('F'['st']*'(CEU,YRI)'), 
-              ylabel = expression(pi['ASW']/pi['YRI']), 
-              figname = 'teste.png')
+    width = 2e4
+    fulldata_wd <- 
+      fulldata[, .(S_adx= length(.I[which(!is.na(AF))]), 
+                   S_s1= length(.I[which(!is.na(AF.x))]), 
+                   S_s2= length(.I[which(!is.na(AF.y))]), 
+                   HTZ_adx = mean(HTZ, na.rm = TRUE), 
+                   HTZ_s1 = mean(HTZ.x, na.rm = TRUE), 
+                   HTZ_s2 = mean(HTZ.y, na.rm = TRUE), 
+                   HTZn_adx = sum(HTZ, na.rm = TRUE) / width, 
+                   HTZn_s1 = sum(HTZ.x, na.rm = TRUE) / width, 
+                   HTZn_s2 = sum(HTZ.y, na.rm = TRUE) / width, 
+                   FST = sum(T1, na.rm = TRUE)/sum(T2, na.rm = TRUE) 
+                  )
+              ,by = .(CHROM, floor(POS / width))]
+
+    min_S <- fulldata_wd[,quantile(S_s2,0.05)][[1]]
+    data_wd <- fulldata_wd[!is.na(FST) & S_adx > min_S & S_s1 > min_S & S_s1 > min_S]
+
+    serial_fst_plots(data_wd, pop_names)
+  }
+
+
+system.time(pipeline(c('YRI', 'CEU', 'ASW'), 
+                     c('YRI', 'CEU', 'ASW'),
+                     61,
+                     c(21)))
+
+system.time(pipeline(c('AFRICA', 'EUROPE', 'BRL'), 
+                     c('AFR', 'EUR', 'BRL'),
+                     77,
+                     c(21)))
+
+
