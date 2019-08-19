@@ -69,7 +69,7 @@ serial_fst_plots <-
   }
 
 pipeline <- 
-  function(pops, pop_names, ns, l_chr){
+  function(pops, pop_names, ns, l_chr, width = 5e4){
     pop_freqs <- 
         lapply(
           pops, 
@@ -89,7 +89,7 @@ pipeline <-
      
     fulldata <- merge_pop_data(pop_freqs)
 
-    width = 2e4
+    width = width
     fulldata_wd <- 
       fulldata[, .(S_adx= length(.I[which(!is.na(AF))]), 
                    S_s1= length(.I[which(!is.na(AF.x))]), 
@@ -114,11 +114,14 @@ pipeline <-
 system.time(pipeline(c('YRI', 'CEU', 'ASW'), 
                      c('YRI', 'CEU', 'ASW'),
                      61,
-                     c(21)))
+                     18:22,
+                     1e5))
 
 system.time(pipeline(c('AFRICA', 'EUROPE', 'BRL'), 
                      c('AFR', 'EUR', 'BRL'),
                      77,
-                     c(21)))
+                     18:22,
+                     1e5))
+
 
 
