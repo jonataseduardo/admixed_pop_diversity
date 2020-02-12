@@ -1,11 +1,12 @@
 library(data.table)
-library(diverdt)
+#library(diverdt)
 library(ggplot2)
 library(devtools)
 library(pkgload)
 library(hexbin)
 library(ggpmisc)
 library(latex2exp)
+
 
 devtools::document('~/diverdt')
 devtools::load_all('~/diverdt')
@@ -108,16 +109,19 @@ pipeline <-
     data_wd <- fulldata_wd[!is.na(FST) & S_adx > min_S & S_s1 > min_S & S_s1 > min_S]
 
     serial_fst_plots(data_wd, pop_names)
+    return(data_wd)
   }
 
 
-system.time(pipeline(c('YRI', 'CEU', 'ASW'), 
-                     c('YRI', 'CEU', 'ASW'),
-                     61,
-                     18:22,
-                     1e5))
+system.time(asw_dt <- 
+              pipeline(c('YRI', 'CEU', 'ASW'), 
+                       c('YRI', 'CEU', 'ASW'),
+                       61,
+                       18:22,
+                       1e5))
 
-system.time(pipeline(c('AFRICA', 'EUROPE', 'BRL'), 
+system.time(brl_dt <-
+              pipeline(c('AFRICA', 'EUROPE', 'BRL'), 
                      c('AFR', 'EUR', 'BRL'),
                      77,
                      18:22,
