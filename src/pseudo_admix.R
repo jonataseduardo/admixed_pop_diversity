@@ -7,7 +7,6 @@ library(hexbin)
 library(ggpmisc)
 library(latex2exp)
 
-
 devtools::document('~/diverdt')
 devtools::load_all('~/diverdt')
 
@@ -57,7 +56,6 @@ serial_fst_plots <-
         yformula <- paste0(sv, 'adx / ', sv, 's', i)
         xlabel <- TeX(paste0("F_{st}(",pop_names[1], ",", pop_names[2], ")"))
         ylabel <- TeX(paste0("$", sl, "_{", pop_names[3], "}","/", sl, "_{", pop_names[i], "}","$"))
-        fname <- paste0(sv, pop_names[3], '-', pop_names[i], '.png')
         plot_wd_stats(data_wd = data_wd, 
                       xformula = xformula,
                       yformula = yformula,
@@ -65,7 +63,6 @@ serial_fst_plots <-
                       ylabel = ylabel,
                       figname = fname)
       }
-
     }
   }
 
@@ -87,7 +84,6 @@ pipeline <-
           }
         )
 
-     
     fulldata <- merge_pop_data(pop_freqs)
 
     width = width
@@ -126,6 +122,20 @@ system.time(brl_dt <-
                      77,
                      18:22,
                      1e5))
+
+
+asw_dt[, eta := FST / ( 1 - FST)] 
+asw_dt[, kappa_h := HTZn_s2 / HTZn_s1]
+asw_dt[, t_div := 4 * kappa_h * FST / (1 + kappa_h)]
+asw_dt[, t_div_1 := 4 * kappa_h * FST / (1 + kappa_h + FST - 3* kappa_h * FST)]
+asw_dt[, summary(t_div_1)]
+
+brl_dt[,.(mean(HTZn_s2) / mean(HTZn_s1))]
+brl_dt[, eta := FST / ( 1 - FST)] 
+brl_dt[, kappa_h := HTZn_s2 / HTZn_s1]
+brl_dt[, t_div := 4 * kappa_h * FST / (1 + kappa_h)]
+brl_dt[, t_div_1 := 4 * kappa_h * FST / (1 + kappa_h + FST - 3* kappa_h * FST)]
+brl_dt[, summary(t_div)]
 
 
 
