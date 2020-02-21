@@ -103,6 +103,11 @@ pipeline <-
 
     min_S <- fulldata_wd[,quantile(S_s2,0.05)][[1]]
     data_wd <- fulldata_wd[!is.na(FST) & S_adx > min_S & S_s1 > min_S & S_s1 > min_S]
+    data_wd[, eta := FST / ( 1 - FST)] 
+    data_wd[, kappa_h := HTZn_s2 / HTZn_s1]
+    data_wd[, kappa_h1 := mean(HTZn_s2) / mean(HTZn_s1)]
+    data_wd[, t_div := 4 * kappa_h * FST / (1 + kappa_h)]
+    data_wd[, t_div_1 := 4 * kappa_h1 * FST / (1 + kappa_h1)]
 
     serial_fst_plots(data_wd, pop_names)
     return(data_wd)
@@ -124,18 +129,11 @@ system.time(brl_dt <-
                      1e5))
 
 
-asw_dt[, eta := FST / ( 1 - FST)] 
-asw_dt[, kappa_h := HTZn_s2 / HTZn_s1]
-asw_dt[, t_div := 4 * kappa_h * FST / (1 + kappa_h)]
-asw_dt[, t_div_1 := 4 * kappa_h * FST / (1 + kappa_h + FST - 3* kappa_h * FST)]
+asw_dt[, summary(t_div)]
 asw_dt[, summary(t_div_1)]
 
-brl_dt[,.(mean(HTZn_s2) / mean(HTZn_s1))]
-brl_dt[, eta := FST / ( 1 - FST)] 
-brl_dt[, kappa_h := HTZn_s2 / HTZn_s1]
-brl_dt[, t_div := 4 * kappa_h * FST / (1 + kappa_h)]
-brl_dt[, t_div_1 := 4 * kappa_h * FST / (1 + kappa_h + FST - 3* kappa_h * FST)]
 brl_dt[, summary(t_div)]
+brl_dt[, summary(t_div_1)]
 
 
 
