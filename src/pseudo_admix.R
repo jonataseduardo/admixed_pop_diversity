@@ -109,7 +109,6 @@ pipeline <-
     data_wd[, t_div := 4 * kappa_h * FST / (1 + kappa_h)]
     data_wd[, t_div_1 := 4 * kappa_h1 * FST / (1 + kappa_h1)]
 
-    serial_fst_plots(data_wd, pop_names)
     return(data_wd)
   }
 
@@ -129,6 +128,7 @@ system.time(brl_dt <-
                      1e5))
 
 
+serial_fst_plots(asw_dt, c('YRI', 'CEU', 'ASW'))
 asw_dt[, summary(t_div)]
 asw_dt[, summary(t_div_1)]
 
