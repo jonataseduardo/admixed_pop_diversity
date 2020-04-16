@@ -61,5 +61,65 @@ serial_fst_plots <-
 asw_dt <- fread('../data/results/asw_results.csv')
 brl_dt <- fread('../data/results/brl_results.csv')
 
+brl_dt[,`:=`(POP_adx = "BRL", POP_s1 = "AFR", POP_s2="EUR")]
+asw_dt[,`:=`(POP_adx = "ASW", POP_s1 = "YRI", POP_s2="CEU")]
+
+cols <- intersect(names(asw_dt), names(brl_dt))
+div_dt <- rbindlist(list(asw_dt[,..cols], brl_dt[,..cols]))
+
+
+
+
+
+ratio_summary <- rbindlist(list(
+  asw_dt[, .(POP = 'AWS', STAT = 'S', MEAN = mean(S_adx/S_s1), t(quantile(S_adx/S_s1, c(0.025, 0.975))))],
+  asw_dt[, .(POP = 'AWS', STAT = 'HTZ', MEAN = mean(HTZn_adx/HTZn_s1), t(quantile(HTZn_adx/HTZn_s1, c(0.025, 0.975))))],
+  brl_dt[, .(POP = 'BRL', STAT = 'S', MEAN = mean(S_adx/S_s1), t(quantile(S_adx/S_s1, c(0.025, 0.975))))],
+  brl_dt[, .(POP = 'BRL', STAT = 'HTZ', MEAN = mean(HTZn_adx/HTZn_s1), t(quantile(HTZn_adx/HTZn_s1, c(0.025, 0.975))))]
+))
+
+ratio_summary
+
 serial_fst_plots(asw_dt, c('YRI', 'CEU', 'ASW'))
 serial_fst_plots(brl_dt, c('AFR', 'EUR', 'BRL'))
+
+
+div_dt <- 
+  rbindlist(list(  
+       brl_dt[, .(stat_key = 'Nuc. diversity ratio', POP_adx = 'BRL', POP_s1 = 'AFR', POP_s2 = 'EUR', FST, value = HTZn_adx/ HTZn_s1)],
+       brl_dt[, .(stat_key = 'Num. seg. sites ratio', POP_adx = 'BRL', POP_s1 = 'AFR', POP_s2 = 'EUR', FST, value = S_adx/ S_s1)],
+       asw_dt[, .(stat_key = 'Nuc. diversity ratio', POP_adx = 'ASW', POP_s1 = 'YRI', POP_s2 = 'CEU', FST, value = HTZn_adx/ HTZn_s1)],
+       asw_dt[, .(stat_key = 'Num. seg. sites ratio', POP_adx = 'ASW', POP_s1 = 'YRI', POP_s2 = 'CEU', FST, value = S_adx/ S_s1)]
+  ))
+
+div_dt <- div_dt[value < 2]
+div_dt[,POP_ratio := paste0(POP_adx, " / ", POP_s1)]
+plot_keys <- div_dt[,.GRP, keyby = .(stat_key, POP_ratio)]
+plot_keys[,`:=`(label = paste0("(", letters[1:4], ")"), x = rep(div_dt[,min(FST)],4), y = rep(div_dt[,max(value)],4))]
+
+  {
+ggplot(div_dt[value < 2], aes(y=value, x=FST)) +
+    geom_hex(aes(fill = log10(..count..))) + 
+    theme_pubr(base_size=16) + 
+    xlab(TeX("$F_{st}$ between ancestrals")) + 
+    ylab(NULL) +
+    labs(fill = TeX("$\\log_{10}$ ($N^{\\underline{0}}$  windows)")) +
+    theme(legend.position = "bottom",
+          legend.title = element_text(size=12),
+          legend.text = element_text(size=10),
+          strip.text = element_text(size=16),
+          strip.background = element_blank(),
+          strip.placement = "outside") +
+    geom_hex(aes(fill = log10(..count..))) +
+    geom_text(data = plot_keys, aes(x=x,y=y, label=label), size = 6)+
+    scale_fill_viridis_c(direction = -1, breaks=pretty_breaks()) +
+    geom_hline(yintercept = 1, color = 'black') +
+    geom_smooth(method = 'lm', formula = y ~ x, se = FALSE, color = 'red') + 
+    stat_poly_eq(formula = y ~ x, parse = TRUE, size = 5, coef.digits=3, label.x = 'right', label.y = 'top') +
+    facet_grid(stat_key~POP_ratio, 
+               scales = "free_y",
+               switch = "y"
+    )
+    ggsave("../figures/stat_ratio_fst.pdf")
+  }
+
