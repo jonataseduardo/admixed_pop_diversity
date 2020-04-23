@@ -64,11 +64,14 @@ brl_dt <- fread('../data/results/brl_results.csv')
 brl_dt[,`:=`(POP_adx = "BRL", POP_s1 = "AFR", POP_s2="EUR")]
 asw_dt[,`:=`(POP_adx = "ASW", POP_s1 = "YRI", POP_s2="CEU")]
 
+
+kappa_S <- brl_dt[,.(MEAN = mean(S_s2/S_s1), t(quantile(S_s2/S_s1, c(0.025, 0.975))))]
+kappa_pi <- brl_dt[,.(MEAN = mean(HTZn_s2/HTZn_s1), t(quantile(HTZn_s2/HTZn_s1, c(0.025, 0.975))))]
+kappa_S
+kappa_pi
+
 cols <- intersect(names(asw_dt), names(brl_dt))
 div_dt <- rbindlist(list(asw_dt[,..cols], brl_dt[,..cols]))
-
-
-
 
 
 ratio_summary <- rbindlist(list(
