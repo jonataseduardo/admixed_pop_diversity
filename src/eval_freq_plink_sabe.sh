@@ -13,7 +13,7 @@
 #PBS -q short
 #PBS -j oe
 #PBS -o $PBS_JOBNAME.log
-#PBS -t 21-22
+#PBS -t 1-22
 
 ROOT_P=/scratch/genevol/sabe/
 
@@ -33,7 +33,7 @@ mkdir -p $OUT_P$POP$NS/
 
 POP_SHUFLE=$OUT_P$POP$NS/$POP"_samples.txt"
 if [ ! -e "$POP_SHUFLE" ]; then 
-  shuf -n $NS $POP_P$POP".txt" > $POP_SHUFLE;
+  Rscript ./sabe_ancestry.R
 fi;
   
 VCF_OUT=$OUT_P$POP$NS/$POP"_chr"$CHR.vcf.gz
@@ -41,6 +41,7 @@ if [ ! -e "$VCF_OUT" ]; then
   $HOME/bin/bcftools view  \
   --min-ac 1 \
   -m2 -M2  \
+  -f PASS \
   --samples-file $POP_SHUFLE \
   --output-file $VCF_OUT \
   --output-type z \

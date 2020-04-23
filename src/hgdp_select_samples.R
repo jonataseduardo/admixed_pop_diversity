@@ -12,4 +12,4 @@ for(r in regions){
 
 for(p in populations){
   fwrite(hgdp_samples[population == p, .(sample)], paste0('/scratch/genevol/hgdp3.0/', p, '.txt'), col.names = FALSE)
-}
+>

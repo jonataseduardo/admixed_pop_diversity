@@ -41,6 +41,7 @@ do
     $HOME/bin/bcftools view  \
     --min-ac 1 \
     -m2 -M2  \
+    -f PASS \
     --samples-file $POP_SHUFLE \
     --output-file $VCF_OUT \
     --output-type z \

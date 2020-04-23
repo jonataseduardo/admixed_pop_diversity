@@ -127,6 +127,8 @@ system.time(brl_dt <-
                      18:22,
                      1e5))
 
+fwrite(brl_dt, '../data/results/brl_results.csv')
+fwrite(asw_dt, '../data/results/asw_results.csv')
 
 serial_fst_plots(asw_dt, c('YRI', 'CEU', 'ASW'))
 asw_dt[, summary(t_div)]

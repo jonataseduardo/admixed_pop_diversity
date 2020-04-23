@@ -6,7 +6,7 @@
 #  Description: 
 #
 
-#PBS -N sabe_jobs 
+#PBS -N hgdp_jobs 
 #PBS -l nodes=1:ppn=1
 #PBS -l mem=24gb
 #PBS -l walltime=24:00:00
@@ -36,6 +36,7 @@ do
 done
 
 CHR=$PBS_ARRAYID
+#CHR=21
 
 for POP in AFRICA EUROPE 
 do
@@ -50,6 +51,7 @@ do
     $HOME/bin/bcftools view  \
     --min-ac 1 \
     -m2 -M2  \
+    -f PASS \
     --samples-file $POP_SHUFLE \
     --output-file $VCF_OUT \
     --output-type z \
